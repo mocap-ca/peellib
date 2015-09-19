@@ -112,7 +112,7 @@ public:
 	//! Append m_buffer with an size_t
 
 
-	Log& operator <<(size_t i)        { m_buffer << i; return *this; }
+	//Log& operator <<(size_t i)        { m_buffer << i; return *this; }
 	//! Append m_buffer with a long
 
 //#ifndef __APPLE__

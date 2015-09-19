@@ -149,16 +149,15 @@ u_long Socket::LookupAddress (const PL_CHAR* pcHost)
 	GetAddrInfo(pcHost, NULL, NULL, &result);
 	return (u_long)result->ai_addr;
 #else
-	u_long nRemoteAddr = inet_addr (pcHost);
-	if (nRemoteAddr == INADDR_NONE) 
-	{
+	unsigned char nRemoteAddr[sizeof(struct in_addr)];
+	int ret = inet_pton(AF_INET, pcHost, &nRemoteAddr);
+	if (ret <= 0) 
+	{/*
 		hostent* pHE = gethostbyname(pcHost);  // pcHost isn't a dotted IP, so resolve it through DNS
-		if (pHE == 0) 
-			return INADDR_NONE;
-
-		nRemoteAddr = *((u_long*)pHE->h_addr_list[0]);
+		if (pHE == 0)  return INADDR_NONE;
+		nRemoteAddr = *((u_long*)pHE->h_addr_list[0]);*/
 	}
-	return nRemoteAddr;
+	return (u_long)nRemoteAddr;
 #endif
 }
 
@@ -242,7 +241,9 @@ void Socket::SetBroadcast(bool broadcast)
 void Socket::SetDestination(const char *ip, unsigned short port)
 {
 	if(m_socketType != UDP) throw SocketException("Invalid Socket Type while trying to set destination");
-	m_sendDest.Set(inet_addr(ip), port);
+	unsigned long addrBuf;
+	inet_pton(AF_INET, ip, &addrBuf);
+	m_sendDest.Set(addrBuf, port);
 }
 
 void Socket::SetDestination(struct sockaddr_in &in, unsigned short port)
@@ -268,7 +269,7 @@ void Socket::SendTo(const void *data, size_t len)
 //******************************************
 //		client stuff		
 //******************************************
-#if defined(_WIN32) && defined(_UNICODE)
+#if defined(_WIN32) 
 void Socket::Connect(const PL_CHAR *host, unsigned short port)
 {
 
@@ -318,8 +319,10 @@ void Socket::Connect(const PL_CHAR *host, unsigned short port)
 
 }
 
+#endif
 
-#else
+
+#if 0
 
 
 void Socket::Connect(const PL_CHAR *host, unsigned short port)

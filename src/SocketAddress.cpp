@@ -46,7 +46,9 @@ STRING SocketAddress::GetName()
 	MultiByteToWideChar(CP_ACP, NULL, buf, -1, wcbuf, 255);
 	return STRING(wcbuf);
 #else
-	return STRING(inet_ntoa(m_address.sin_addr));
+	char buf[255];
+	inet_ntop(AF_INET, (void*)&(m_address.sin_addr), buf, 255);
+	return STRING(buf);
 #endif
 
 

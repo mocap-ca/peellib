@@ -2,6 +2,7 @@
 #include "Windows.h"
 #include <stdio.h>
 
+#include <sstream>
 namespace peel
 {
 
@@ -55,11 +56,13 @@ void StopClock(int c)
 
 void GetClock(int c, char *buf)
 {
-	sprintf(buf, "Counter %3d: %0.05f%%\t(%0.05f\t%0.05f)\t%d", c, 
-		((double)duration[c] / (double)max_duration) * 100., 
-		(double)duration[c]/(double)freq, 
-		((double)duration[c]/(double)counter[c])/(double)freq, 
-		counter[c]);
+	std::ostringstream oss;
+
+	oss << "Counter: " << c << "  " << \
+		((double)duration[c] / (double)max_duration) * 100. << \
+		(double)duration[c]/(double)freq << \
+		((double)duration[c]/(double)counter[c])/(double)freq << \
+		counter[c];
 }
 
 double GetTime(int c)

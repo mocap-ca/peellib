@@ -30,8 +30,7 @@ bool XmlTagEntity::getArg(STRING name, STRING &value)
 bool XmlTagEntity::getArg(STRING name, long &lvalue)
 {
 	STRING tmp;
-	if(!getArg(name, tmp))
-		return false;
+	if(!getArg(name, tmp)) return false;
 #ifdef _WIN32
 	lvalue = _tstol(tmp.c_str());
 #else
@@ -44,8 +43,7 @@ bool XmlTagEntity::getArg(STRING name, long &lvalue)
 bool XmlTagEntity::getArg(STRING name, int &ivalue)
 {
 	STRING tmp;
-	if(!getArg(name, tmp))
-		return false;
+	if(!getArg(name, tmp)) return false;
 #ifdef _WIN32
 	ivalue = _tstoi(tmp.c_str());
 #else
@@ -57,39 +55,32 @@ bool XmlTagEntity::getArg(STRING name, int &ivalue)
 bool XmlTagEntity::getArg(STRING name, unsigned int &ivalue)
 {
 	int i=0;
-	if(!getArg(name, i))
-		return false;
-
-	if(i<=0) 
-		return false;
-
+	if(!getArg(name, i)) return false;
+	if(i<=0) return false;
 	ivalue=i;
-	
 	return true;
 }
 
 bool XmlTagEntity::getArg(STRING name, float &fvalue)
 {
 	STRING sval;
-
-	if(!getArg(name, sval))
-		return false;
-
+	if(!getArg(name, sval)) return false;
 	ISTREAM ss(sval);
-
-	return (ss >> fvalue);
+	ss >> fvalue;
+	return ss.good();
 }
 
 bool XmlTagEntity::getArg(STRING name, double &dvalue)
 {
 	STRING sval;
 
-	if(!getArg(name, sval))
-		return false;
+	if(!getArg(name, sval)) return false;
 
 	ISTREAM ss(sval);
 
-	return (ss >> dvalue);
+	ss >> dvalue;
+
+	return ss.good();
 }
 
 bool XmlTagEntity::getArg(STRING name, bool &bvalue)

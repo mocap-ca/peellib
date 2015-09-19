@@ -4,6 +4,7 @@
 #include "peel/chartype.h"
 
 #ifdef _WIN32
+#include <stdio.h>
 #include <tchar.h>
 #include "peel/WinUtil.h"
 #include "windows.h"
@@ -253,7 +254,7 @@ long HttpSocket::SendFileFormInet(STRING host, int port, STRING url, STRING file
 
 	PL_CHAR temp[13];
 	//_tprintf_s(temp, 13, "%04X%04X%04X", r0, r1, r2);
-	sprintf(temp, "%04X%04X%04X", r0, r1, r2);
+	sprintf_s(temp, 13, "%04X%04X%04X", r0, r1, r2);
 
 	boundary += temp;
 
@@ -698,8 +699,9 @@ void HttpSocket::ReplyGet(const std::string body, bool htmlBody, int code)
 	ostringstream ss;
 	char buffer[255];
 	time_t t = time(NULL);
-	struct tm *my_tm = gmtime(&t);
-	strftime(buffer, 255, "%a, %d %b %Y %H:%M:%S GMT", my_tm);
+	struct tm my_tm;
+	gmtime_s(&my_tm, &t);
+	strftime(buffer, 255, "%a, %d %b %Y %H:%M:%S GMT", &my_tm);
 
 	if(code == 404) ss << "HTTP/1.1 404 Not Found\r\n";
 	else            ss << "HTTP/1.1 200 OK\r\n";

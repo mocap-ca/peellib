@@ -231,8 +231,8 @@ STRING Log::timestr()
 #ifdef _WIN32	
 	PL_CHAR tbuf[255];
 	PL_CHAR dbuf[255];
-	_tstrtime(tbuf);
-	_tstrdate(dbuf);
+	_tstrtime_s(tbuf, 255);
+	_tstrdate_s(dbuf, 255);
 	ss << dbuf << _T(" ") << tbuf;
 #else
 	time_t t;
