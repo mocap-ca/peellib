@@ -117,13 +117,13 @@ STRING GetRegKey(STRING group, STRING key)
 	if(lResult != ERROR_SUCCESS)
 	{
 		lResult = RegOpenKeyEx(HKEY_CURRENT_USER, _T("Software\\Peel"), 0, KEY_QUERY_VALUE, &hkey);
-		if(lResult != ERROR_SUCCESS) return string("");
+        if(lResult != ERROR_SUCCESS) return STRING();
 	}
 
-	if(RegOpenKeyEx(hkey, group.c_str(), 0, KEY_QUERY_VALUE, &hkey2)!=ERROR_SUCCESS) return string("");
+    if(RegOpenKeyEx(hkey, group.c_str(), 0, KEY_QUERY_VALUE, &hkey2)!=ERROR_SUCCESS) return STRING();
 
 	lResult = RegQueryValueEx(hkey2, key.c_str(), NULL, NULL, (LPBYTE)&buf, &size);
- 	if(lResult!=ERROR_SUCCESS) return string("");
+    if(lResult!=ERROR_SUCCESS) return STRING();
 
 	return STRING(buf);
 }
@@ -159,7 +159,7 @@ STRING GetMachineId()
 		}
 	}
 
-	return STRING("");
+    return STRING();
 }
 
 } // namespace

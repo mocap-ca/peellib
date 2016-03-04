@@ -8,6 +8,7 @@
 #include <iostream>
 #include <time.h>
 #include <sstream>
+#include <vector>
 
 #include "peel/SocketDefines.h"
 #include "peel/SocketAddress.h"
@@ -118,7 +119,7 @@ public:
 	// Init
 
 	//! open a connection to the host/port
-	void     Connect(const PL_CHAR *host, unsigned short port);
+        void     Connect(const PL_CHAR *host, unsigned short port);
 
 	//! open a connection to the host/port
 	void     Connect(sockaddr_in *host, unsigned short port);
@@ -173,7 +174,7 @@ public:
 		Send
 	*/
 
-	void     Send(const STRING & data);  //!< Puts data on the wire.
+        void     Send(std::vector<char> & data);  //!< Puts data on the wire.
 	void     Send(void *data, int len);  //!< Puts data on the wire
 	void     Send(PL_CHAR c);            //!< Puts a single character on the wire
 
@@ -189,7 +190,7 @@ public:
 
 	//! Receive data
 	/*! Will keep reading in data till TIMEOUT has been exceeded or connection is closed. */
-	bool     Receive(STRING &data);
+        bool     Receive(std::vector<char> &data);
 
 	//! Receive a specific length of data
 	void     Receive(void *buf, int len, int *recd);

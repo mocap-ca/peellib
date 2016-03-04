@@ -24,8 +24,8 @@ using namespace std;
 namespace PU
 {
 	bool  TimeStr(time_t time, string &res);          //!< convert time_t to string
-	bool  UrlEncode(const STRING & Url, string &res); //!< url encode a string
-	bool  UrlDecode(const STRING & Url, string &res); //!< url decode a string
+        bool  UrlEncode(const string & Url, string &res); //!< url encode a string
+        bool  UrlDecode(const string & Url, string &res); //!< url decode a string
 	string  UpperCase(const STRING&);      //!< Make a string uppercase
 	bool    StrICmp(STRING , STRING);       //!< Case insensitive compare
 	bool    StrICmp(STRING , const PL_CHAR *);  //!< Case insensitive compare

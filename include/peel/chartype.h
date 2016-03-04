@@ -1,6 +1,7 @@
-#ifndef ___PEEL_CHARTYPE_H__
-#define ___PEEL_CHARTYPE_H__
+#ifndef PEEL_CHARTYPE_H
+#define PEEL_CHARTYPE_H
 
+#include <string>
 
 // For windows unicode a character is two bytes unicode  (using tchar.h)
 // For windows multibyte a character is one byte ascii   (using tchar.h)
@@ -55,6 +56,48 @@ typedef const char*            pl_const_char;
 // pointer to a block of data for reading and writing to/from files and sockets
 typedef unsigned char          pl_data;
 typedef const unsigned char   pl_const_data;
+
+
+static inline std::wstring wide_string( std::string str )
+{
+    std::wstring result;
+    result.resize(str.size());
+
+    std::locale loc("C");
+
+    std::use_facet<std::ctype<wchar_t> >(loc).widen(
+      str.c_str(), str.c_str() + str.size(), &*result.begin());
+
+    return result;
+}
+
+
+static inline std::string multibyte_string( std::wstring str)
+{
+  std::string result;
+  result.resize(str.size());
+
+  std::locale loc("C");
+
+  std::use_facet<std::ctype<wchar_t> >(loc).narrow(
+    str.c_str(), str.c_str() + str.size(), '?',  &*result.begin());
+
+  return result;
+}
+
+#ifdef _UNICODE
+#define WSTRING(ws) ws
+#define MBSTRING(mbs) wide_string(mbs)
+#define AS_WIDE(s) s
+#define AS_MB(s) multibyte_string(s)
+#else
+#define WSTRING(ws) multibyte_string(ws)
+#define MBSTRING(mbs) mbs
+#define AS_WIDE(s) wide_string(s)
+#define AS_MB(s) s
+
+
+#endif
 
 
 

@@ -226,7 +226,7 @@ void Socket::SetBlocking(bool block)
 void Socket::SetBroadcast(bool broadcast)
 {
 	if(m_socketType != UDP)
-		throw SocketException("Invalid Socket Type while trying to set broadcast");
+        throw SocketException(_T("Invalid Socket Type while trying to set broadcast"));
 
 	int b = broadcast ? 1 : 0;
 #ifdef _WIN32
@@ -240,7 +240,7 @@ void Socket::SetBroadcast(bool broadcast)
 
 void Socket::SetDestination(const char *ip, unsigned short port)
 {
-	if(m_socketType != UDP) throw SocketException("Invalid Socket Type while trying to set destination");
+    if(m_socketType != UDP) throw SocketException(_T("Invalid Socket Type while trying to set destination"));
 	unsigned long addrBuf;
 	inet_pton(AF_INET, ip, &addrBuf);
 	m_sendDest.Set(addrBuf, port);
@@ -248,14 +248,14 @@ void Socket::SetDestination(const char *ip, unsigned short port)
 
 void Socket::SetDestination(struct sockaddr_in &in, unsigned short port)
 {
-	if(m_socketType != UDP) throw SocketException("Invalid Socket Type while trying to set destination");
+    if(m_socketType != UDP) throw SocketException(_T("Invalid Socket Type while trying to set destination"));
 	m_sendDest.Set(in.sin_addr.s_addr, port);
 }
 	
 
 void Socket::SendTo(const void *data, size_t len)
 {
-	if(m_socketType != UDP) throw SocketException("Invalid Socket Type while trying to send datagram")
+    if(m_socketType != UDP) throw SocketException(_T("Invalid Socket Type while trying to send datagram"))
 ;
 	size_t ret = sendto(m_socket, (const char*)data, len, 0,
 				 (struct sockaddr *)&m_sendDest.m_address,
@@ -279,7 +279,7 @@ void Socket::Connect(const PL_CHAR *host, unsigned short port)
 	if(m_socket==SOCKET_NULL || m_socket == INVALID_SOCKET)
 		throw SocketException(_T("Invalid socket while trying to connect"));
 
-	OSTREAM ossport;
+    OSTREAM ossport;
 	ossport << (int)port;
 
 	ADDRINFOT hints;
@@ -427,7 +427,7 @@ void Socket::Disconnect()
 
 void Socket::Bind(unsigned short port)
 {
-	if(m_socketType == UNIX) throw SocketException("Invalid socket type for Bind");
+    if(m_socketType == UNIX) throw SocketException(_T("Invalid socket type for Bind"));
 
 	struct sockaddr_in service;
 	memset(&service, 0, sizeof(sockaddr_in));
@@ -474,7 +474,7 @@ size_t Socket::GetDatagram(char *buf, size_t len)
 
 void Socket::Listen(int port, bool nonBlocking)
 {
-	if(m_socketType == UNIX) throw SocketException("Invalid Socket type for Listen");
+    if(m_socketType == UNIX) throw SocketException(_T("Invalid Socket type for Listen"));
 	if(nonBlocking)
 	{
 #ifdef _WIN32
@@ -543,9 +543,9 @@ bool Socket::Accept(SOCKET &new_sock)
 ******************************************/
 
 
-void Socket::Send(const STRING &data)
+void Socket::Send(std::vector<char> &data)
 {
-	Send((void*)data.c_str(), data.length() * sizeof(PL_CHAR));
+    Send((void*)data.data(), data.size());
 }
 
 void Socket::Send(PL_CHAR c)
@@ -595,8 +595,6 @@ bool Socket::SendUrl(const char *url, string &header, string &data)
 
 bool Socket::PutFile(const PL_CHAR *filename, long offset)
 {
-
-	stringstream ss;
 	pl_data buffer[4096];
 	bool b;
 	size_t bytesRead;
@@ -748,22 +746,19 @@ void Socket::ReceiveRaw(STRING filename, int len)
 
 
 
-bool Socket::Receive(STRING &data)
+bool Socket::Receive(std::vector<char> &data)
 {
-	OSTREAM    ss;
-	PL_CHAR      c[RECEIVE_BUFF_SIZE];
+    char    c[RECEIVE_BUFF_SIZE];
 	int     bytesRecv = 0;
-	data = _T("");
 	time_t  startTime = time(NULL);
 
 	while(bytesRecv >= 0 && difftime(time(NULL),startTime) < TIMEOUT )
 	{
-		Receive((void*)c, (RECEIVE_BUFF_SIZE / sizeof(PL_CHAR)) -1, &bytesRecv);
+        Receive((void*)c, (RECEIVE_BUFF_SIZE) -1, &bytesRecv);
 
 		if ( bytesRecv > 0 )
 		{
-			c[bytesRecv]='\0';
-			data.append(c);
+            std::copy( c, c+bytesRecv, data.begin() );
 		}
 	}
 

@@ -21,23 +21,23 @@ public:
 	*/
 
 	//! Send a HTTP GET with userAgent as "PeelLib"
-	void     SendGet(const STRING &url, const STRING &host);   
+        void     SendGet(const string &url, const string &host);
 
 	//!< Send a HTTP GET command with specified userAgent
-	void     SendGet(const STRING &url, const STRING &userAgent, const STRING &host); 
+        void     SendGet(const string &url, const string &userAgent, const string &host);
 
 	//! Static SendGet with http data split by head/body
 	/*!  Creates a Socket object, connects to host/port sends the get comand
           and uses Receive() to get any data back, and parses the data for the
 		  header and body data */
-	static void SendGet(const STRING &url, const STRING &host, const int &port, STRING *data = NULL);
+        static void SendGet(const string &url, const string &host, const int &port, string *data = NULL);
 
 	//static void   GetFileInet(const string &url, const string &host, const sint port, string filename, string md5);
 
 
 #ifdef _WIN32
 	// Win Inet Gets
-	static void  SendGetInet(const STRING &url, const STRING &host, const int &port, string *data = NULL);
+        static void  SendGetInet(const STRING &url, const STRING &host, const int &port, std::vector<char> *data = NULL);
 
 	//! Gets a url and saves it as a file, using wininet
 	/*! \param url the remote file to get, e.g. "\index.html" */
@@ -47,24 +47,24 @@ public:
 
 	//! Use a HTTP POST to send a file, simple POST command - returns number of bytes sent
 	/*! Just sends the headers only! */
-	long     SendFile(const PL_CHAR *filename, const PL_CHAR *url, const STRING &host);
+        long     SendFile(const PL_CHAR *filename, const char *url, const string &host);
 
 	//! Use a HTTP POST to send a file as a multipart form style post - returns number of bytes sent
 	/*! Sends file using a multipart form */
-	long     SendFileForm(const PL_CHAR *filename, const PL_CHAR *url, const STRING &host);
+        long     SendFileForm(const PL_CHAR *filename, const char *url, const string &host);
 
 	//! Static POST
 	/*! Creates a socket object and uses SendFile() to transfer the file */
-	static long   SendFile(const STRING host, const int port, const STRING url, const STRING filename, STRING *data = NULL);
+        static long   SendFile(const string host, const int port, const string url, const STRING filename, string *data = NULL);
 
 #ifdef _WIN32
 	//! Sends the file using wininet
-	static long   SendFileFormInet(STRING host, int port, STRING url, STRING filename, STRING *data = NULL);
+        static long   SendFileFormInet(STRING host, int port, STRING url, STRING filename, string *data = NULL);
 	//! Throws an error for SendFileFormInet
 	static void   SendFileFormInetError(const PL_CHAR *msg, HANDLE hFile, HINTERNET hNet, HINTERNET hCon, HINTERNET hReq);
 #endif
 
-	static long SendFileForm(STRING host, int port, STRING url, STRING filename, STRING *data = NULL);
+        static long SendFileForm(string host, int port, STRING url, string filename, string *data = NULL);
 
 
 
@@ -73,7 +73,7 @@ public:
 	*/ 
 	//! Read an incoming http stream from a server and split it up by header and data
 	/*! This is useful to do after sending an http get command */
-	bool     ReceiveHttp(string *header, STRING *data);  
+        bool     ReceiveHttp(string *header, string *data);
 
 	//! Read the headers
 	/*! Reads only the headers from an incoming http stream, the rest of the data is left

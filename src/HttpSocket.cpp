@@ -22,40 +22,37 @@ using namespace peel;
 
 //http://www.experts-exchange.com/Programming/Programming_Languages/Cplusplus/Q_20435257.html?query=shutdown+socket+order&topics=84
 
-
 const char *boundary    = "---------------------------888888888888a";
+
+
 
 /*
 	Send
 */
 
-
-
-
-
-void HttpSocket::SendGet(const STRING &url, const STRING &host)
+void HttpSocket::SendGet(const string &url, const string &host)
 {
-	SendGet(url, _T("PeelLib"), host);
+    SendGet(url, "PeelLib", host);
 }
 
-void HttpSocket::SendGet(const STRING &url, const STRING &userAgent, const STRING &host)
+void HttpSocket::SendGet(const string &url, const string &userAgent, const string &host)
 {
-	OSTREAM ss;
+    std::ostringstream ss;
 	ss << "GET " << url << " HTTP/1.1\r\n";
-	ss << "Host: " << host << " \r\n";
+    ss << "Host: " << host << " \r\n";
 	ss << "User-Agent: " << userAgent << "\r\n";
 	ss << "Accept: text/plain\r\n";
 	ss << "Connection: close\r\n";
 	ss << "\r\n";
-	Send(ss.str());
+    std::string s(ss.str());
+    std::vector<char> vs( s.begin(), s.end() );
+    Send(vs);
 }
 
-
-
-void HttpSocket::SendGet(const STRING &url, const STRING &host, const int &port, STRING *data)
+void HttpSocket::SendGet(const string &url, const string &host, const int &port, string *data)
 {
 	HttpSocket s;
-	s.Connect(host.c_str(), port);
+    s.Connect( MBSTRING( host ).c_str(), port);
 	s.SendGet(url, host);
 	s.DisconnectSend();
 	if(data != NULL)
@@ -67,8 +64,7 @@ void HttpSocket::SendGet(const STRING &url, const STRING &host, const int &port,
 	s.DestroySocket();
 }
 
-
-long HttpSocket::SendFile(const PL_CHAR *filename, const PL_CHAR *url, const STRING &host)
+long HttpSocket::SendFile(const PL_CHAR *filename, const char *url, const string &host)
 {
 	ostringstream ss;
 
@@ -80,15 +76,7 @@ long HttpSocket::SendFile(const PL_CHAR *filename, const PL_CHAR *url, const STR
 		return 0;
 
 	ss << "POST " << url << " HTTP/1.1\r\n";
-
-#ifdef _UNICODE
-	char mbchar[255];
-	WideCharToMultiByte(CP_ACP, NULL, host.c_str(), host.size(), mbchar, NULL, NULL, NULL);
-	ss << "Host: " << mbchar << "\r\n"; 
-#else
-	ss << "Host: " << host << "\r\n"; 
-#endif
-
+    ss << "Host: " << host << "\r\n";
 	ss << "User-agent: PeelLib\r\n";
 	ss << "Content-type: application/x-renderdata\r\n";
 	ss << "FileName: " << filename << "\r\n";
@@ -96,19 +84,17 @@ long HttpSocket::SendFile(const PL_CHAR *filename, const PL_CHAR *url, const STR
 
 	Send((void *)ss.str().c_str(), ss.str().length());
 
-	
-
 	return fileSize;
 }
 
 
 
 // Static
-long HttpSocket::SendFile(const STRING host, const int port, const STRING url, const STRING filename, STRING *data)
+long HttpSocket::SendFile(const string host, const int port, const string url, const STRING filename, string *data)
 {
 	long ret = 0;
 	HttpSocket s;
-	s.Connect(host.c_str(), port);
+    s.Connect(MBSTRING(host).c_str(), port);
 	ret = s.SendFileForm(filename.c_str(), url.c_str(), host);
 
 	if(data != NULL)
@@ -130,7 +116,7 @@ long HttpSocket::SendFile(const STRING host, const int port, const STRING url, c
 
 	
 
-long HttpSocket::SendFileForm(const PL_CHAR *filename, const PL_CHAR *url, const STRING &host)
+long HttpSocket::SendFileForm(const PL_CHAR *filename, const char *url, const string &host)
 {
 	stringstream  ss;
 	pl_data       buffer[2048];
@@ -157,13 +143,7 @@ long HttpSocket::SendFileForm(const PL_CHAR *filename, const PL_CHAR *url, const
 	message_end << "\r\n--" << boundary << "--";
 
 	ss << "POST " << url << " HTTP/1.1\r\n";
-#ifdef _UNICODE
-	char mbchar[255];
-	WideCharToMultiByte(CP_ACP, NULL, host.c_str(), host.size(), mbchar, NULL, NULL, NULL);
-	ss << "Host: " << mbchar << "\r\n"; 
-#else
 	ss << "Host: " << host.c_str() << "\r\n";
-#endif
 	//ss << "Accept: text/xml, text/html, text/plain\r\n";
 	//ss << "Keep Alive: 300\r\n";
 	ss << "Content-Type: multipart/form-data; boundary=" << boundary << "\r\n";
@@ -207,9 +187,9 @@ void HttpSocket::SendFileFormInetError(const PL_CHAR *msg, HANDLE hFile, HINTERN
 	throw SocketException(msg, GetError());
 }
 
-long HttpSocket::SendFileFormInet(STRING host, int port, STRING url, STRING filename, STRING *data)
+long HttpSocket::SendFileFormInet(STRING host, int port, STRING url, STRING filename, string *data)
 {
-	OSTREAM ss;
+    std::ostringstream ss;
 	DWORD size_low;
 	DWORD size_high;
 
@@ -253,8 +233,11 @@ long HttpSocket::SendFileFormInet(STRING host, int port, STRING url, STRING file
 	int r2 = rand() & 0x00ff;
 
 	PL_CHAR temp[13];
-	//_tprintf_s(temp, 13, "%04X%04X%04X", r0, r1, r2);
-	sprintf_s(temp, 13, "%04X%04X%04X", r0, r1, r2);
+#ifdef WIN32
+    _tprintf_s(temp, 13, "%04X%04X%04X", r0, r1, r2);
+#else
+    sprintf_s(temp, 13, "%04X%04X%04X", r0, r1, r2);
+#endif
 
 	boundary += temp;
 
@@ -358,7 +341,7 @@ long HttpSocket::SendFileFormInet(STRING host, int port, STRING url, STRING file
 }
 
 
-void HttpSocket::SendGetInet(const STRING &url, const STRING &host, const int &port, string *data)
+void HttpSocket::SendGetInet(const STRING &url, const STRING &host, const int &port, std::vector<char> *data)
 {
 	char d[4096];
 	DWORD len;
@@ -405,9 +388,8 @@ void HttpSocket::SendGetInet(const STRING &url, const STRING &host, const int &p
 				break;
 			if(len==0) break;
 			d[len]='\0';
-			lss << d;
+            std::copy( d, d+len, (*data).begin());
 		}
-		*data = lss.str();
 	}
 
 	InternetCloseHandle(hNet);
@@ -560,7 +542,7 @@ bool HttpSocket::ReceiveHeader(string &data)
 // If have sent an http request, e.g. GET to an http server, this will
 // parse the response.
 
-bool HttpSocket::ReceiveHttp(std::string *header, STRING *data)
+bool HttpSocket::ReceiveHttp(std::string *header, std::string *data)
 {
 	OSTREAM      ss;
 	char         temp_data;
@@ -569,7 +551,7 @@ bool HttpSocket::ReceiveHttp(std::string *header, STRING *data)
 	
 	if(!header && !data) return false;
 	if(header != NULL)  *header  = "";
-	if(data   != NULL)  *data    = _T("");
+    if(data   != NULL)  *data    = "";
 
 	string header_data;
 

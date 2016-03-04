@@ -89,10 +89,9 @@ bool isNumeric(STRING &s)
 	return (s.find_first_not_of(_T("0123456789"),i)==string::npos);
 }
 
-bool UrlEncode(const std::string & Url, std::string &result)
+bool UrlEncode(const string & Url, std::string &result)
 {
 	//std::cout << "Url "<< Url << std::endl;
-
 	
 	//char *tmp = new char [(Url.length()*3)];
 	char *tmp = new char[(Url.length()*3)+1];
