@@ -2,6 +2,7 @@
 #define PEEL_CHARTYPE_H
 
 #include <string>
+#include <locale>
 
 // For windows unicode a character is two bytes unicode  (using tchar.h)
 // For windows multibyte a character is one byte ascii   (using tchar.h)
