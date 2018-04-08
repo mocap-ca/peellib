@@ -4,6 +4,8 @@
 #include "peel/chartype.h"
 
 #ifdef _WIN32
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "Wininet.lib")
 #include <stdio.h>
 #include <tchar.h>
 #include "peel/WinUtil.h"
@@ -82,7 +84,7 @@ long HttpSocket::SendFile(const PL_CHAR *filename, const char *url, const string
 	ss << "FileName: " << filename << "\r\n";
 	ss << "Content-Length: " << fileSize << "\r\n\r\n";
 
-	Send((void *)ss.str().c_str(), ss.str().length());
+	Send((void *)ss.str().c_str(), (int)ss.str().length());
 
 	return fileSize;
 }
@@ -153,20 +155,20 @@ long HttpSocket::SendFileForm(const PL_CHAR *filename, const char *url, const st
 
 	ss << "Content-Length: " << message.str().length() + fileSize + message_end.str().length() << "\r\n\r\n";
 
-	Send((void*)ss.str().c_str(), ss.str().length());
-	Send((void*)message.str().c_str(), message.str().length());
+	Send((void*)ss.str().c_str(), (int)ss.str().length());
+	Send((void*)message.str().c_str(), (int)message.str().length());
 
 	pf.read(buffer, 2048, &bytesRead);
 
 	while(bytesRead > 0)
 	{
 		//PU::b64_encode( buffer, buffer_enc, bytesRead );
-		Send(buffer, bytesRead);
-		count += bytesRead;
+		Send(buffer, (int)bytesRead);
+		count += (long)bytesRead;
 		pf.read(buffer, 2048, &bytesRead);
 	}
 
-	Send((void*)message_end.str().c_str(), message_end.str().length());
+	Send((void*)message_end.str().c_str(), (int)message_end.str().length());
 
 	pf.close();
 
@@ -258,7 +260,7 @@ long HttpSocket::SendFileFormInet(STRING host, int port, STRING url, STRING file
 
 	// Send Headers
 
-	BufferIn.dwBufferTotal  = size_low + requestHeader.str().length() + requestFooter.str().length();
+	BufferIn.dwBufferTotal  = (DWORD)(size_low + requestHeader.str().length() + requestFooter.str().length());
 
 	if(!HttpSendRequestEx( hReq, &BufferIn, NULL, HSR_INITIATE, 0))
 		SendFileFormInetError(_T("Could not send request to server"), hFile, hNet, hCon, hReq);
@@ -275,7 +277,10 @@ long HttpSocket::SendFileFormInet(STRING host, int port, STRING url, STRING file
 
 	// Send Header
 
-	if (!(bRet=InternetWriteFile( hReq, (void*)requestHeader.str().c_str(), requestHeader.str().length(), &dwBytesWritten)))
+	if (!(bRet=InternetWriteFile( hReq, 
+					(void*)requestHeader.str().c_str(), 
+					(DWORD)requestHeader.str().length(), 
+					&dwBytesWritten)))
 		SendFileFormInetError(_T("Could not write data to server"), hFile, hNet, hCon, hReq);
 
 	sum+=dwBytesWritten;

@@ -94,7 +94,7 @@ bool SetRegKey(STRING group, STRING key, STRING value)
 
 	if(RegOpenKeyEx(hkey, group.c_str(), 0, KEY_ALL_ACCESS, &hkey2)!=ERROR_SUCCESS) return false;
 
-	if(RegSetValueEx(hkey2, key.c_str(), 0, REG_SZ, (BYTE*)value.c_str(), value.length())==ERROR_SUCCESS)
+	if(RegSetValueEx(hkey2, key.c_str(), 0, REG_SZ, (BYTE*)value.c_str(), (DWORD)value.length())==ERROR_SUCCESS)
 		return true;
 	else
 		return false;

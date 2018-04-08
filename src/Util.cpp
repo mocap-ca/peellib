@@ -97,7 +97,7 @@ bool UrlEncode(const string & Url, std::string &result)
 	char *tmp = new char[(Url.length()*3)+1];
 
 	char t[10];
-	int j=0;
+	size_t j=0;
 
 	for (size_t i = 0; i < Url.length(); i++)
 	{
@@ -127,7 +127,7 @@ bool UrlEncode(const string & Url, std::string &result)
 
 bool UrlDecode(const std::string & Url, std::string &res)
 {
-	int length = Url.length();  // get the length of the string
+	size_t length = Url.length();  // get the length of the string
 	int offset = 0; // difference between original and new length
 	int i; // count
 	// go through each character of the string

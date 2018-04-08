@@ -79,7 +79,7 @@ public:
 	static STRING   GetComputerName();
 
 	//! Look up a host and return its hostent->h_addr_list info
-	u_long   LookupAddress (const PL_CHAR* pcHost);
+	bool   LookupAddress (const PL_CHAR* pcHost, void* ret);
 
 	//! Return the local name that m_socket is bound to
 	STRING   GetName();
@@ -144,7 +144,7 @@ public:
 	void     Bind(const char *path = NULL);
 #endif
 
-	size_t   GetDatagram(char *msg, size_t maxLen);
+	size_t   GetDatagram(char *msg, int maxLen);
 
 	
 	//! Listen for a connection.

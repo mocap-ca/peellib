@@ -1,5 +1,6 @@
 
 #include "Windows.h"
+#pragma comment(lib, "Winmm.lib")
 #include <stdio.h>
 
 #include <sstream>
