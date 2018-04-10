@@ -149,8 +149,7 @@ bool Socket::LookupAddress (const PL_CHAR* pcHost, void *ret)
 #if defined(_WIN32) && defined(_UNICODE)
 	ADDRINFOT *result = NULL;
 	GetAddrInfo(pcHost, NULL, NULL, &result);
-	ret = (u_long)result->ai_addr;
-	memcpy(ret, result->ai_addr, sizeof(ulong));
+    memcpy(ret, result->ai_addr, sizeof(unsigned long));
 	return true;
 #else
 	unsigned char nRemoteAddr[sizeof(struct in_addr)];
