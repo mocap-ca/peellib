@@ -42,10 +42,17 @@ STRING SocketAddress::GetName()
 {
 #if defined(_WIN32) && defined(_UNICODE)
 	wchar_t wcbuf[255];
+	char buf[255];
+	inet_ntop(AF_INET, (void*)&(m_address.sin_addr), buf, 255);
+	MultiByteToWideChar(CP_ACP, NULL, buf, -1, wcbuf, 255);
+	return STRING(wcbuf);
+	/*
+	wchar_t wcbuf[255];
     sockaddr_in name;
 	char *buf = inet_ntoa(name.sin_addr);
 	MultiByteToWideChar(CP_ACP, NULL, buf, -1, wcbuf, 255);
 	return STRING(wcbuf);
+	*/
 #else
 	char buf[255];
 	inet_ntop(AF_INET, (void*)&(m_address.sin_addr), buf, 255);

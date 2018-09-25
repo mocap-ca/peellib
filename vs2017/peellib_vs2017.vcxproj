@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{510FC653-0BDC-4A19-B711-AE828DF530C1}</ProjectGuid>
+    <RootNamespace>peellibvs2017</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\lib\</OutDir>
+    <TargetName>peellib</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\lib\</OutDir>
+    <TargetName>peellibd</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>../include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\BinderParser.cpp" />
+    <ClCompile Include="..\src\BroadcastListenThread.cpp" />
+    <ClCompile Include="..\src\c3dFile.cpp" />
+    <ClCompile Include="..\src\File.cpp" />
+    <ClCompile Include="..\src\HttpSocket.cpp" />
+    <ClCompile Include="..\src\ListenThread.cpp" />
+    <ClCompile Include="..\src\Log.cpp" />
+    <ClCompile Include="..\src\profile.cpp" />
+    <ClCompile Include="..\src\Signal.cpp" />
+    <ClCompile Include="..\src\Socket.cpp" />
+    <ClCompile Include="..\src\SocketAddress.cpp" />
+    <ClCompile Include="..\src\SocketException.cpp" />
+    <ClCompile Include="..\src\Util.cpp" />
+    <ClCompile Include="..\src\WinUtil.cpp" />
+    <ClCompile Include="..\src\XmlParser.cpp" />
+    <ClCompile Include="..\src\xmltag.cpp" />
+    <ClCompile Include="..\src\XmlTagGet.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\peel\BinderData.h" />
+    <ClInclude Include="..\include\peel\BinderParser.h" />
+    <ClInclude Include="..\include\peel\BroadcastListenThread.h" />
+    <ClInclude Include="..\include\peel\c3dFile.h" />
+    <ClInclude Include="..\include\peel\chartype.h" />
+    <ClInclude Include="..\include\peel\define.h" />
+    <ClInclude Include="..\include\peel\doxy.h" />
+    <ClInclude Include="..\include\peel\File.h" />
+    <ClInclude Include="..\include\peel\HttpSocket.h" />
+    <ClInclude Include="..\include\peel\ListenThread.h" />
+    <ClInclude Include="..\include\peel\Lock.h" />
+    <ClInclude Include="..\include\peel\Log.h" />
+    <ClInclude Include="..\include\peel\profile.h" />
+    <ClInclude Include="..\include\peel\Signal.h" />
+    <ClInclude Include="..\include\peel\Socket.h" />
+    <ClInclude Include="..\include\peel\SocketAddress.h" />
+    <ClInclude Include="..\include\peel\SocketDefines.h" />
+    <ClInclude Include="..\include\peel\SocketException.h" />
+    <ClInclude Include="..\include\peel\Thread.h" />
+    <ClInclude Include="..\include\peel\Util.h" />
+    <ClInclude Include="..\include\peel\WinUtil.h" />
+    <ClInclude Include="..\include\peel\Worker.h" />
+    <ClInclude Include="..\include\peel\WorkerCommand.h" />
+    <ClInclude Include="..\include\peel\Xml.h" />
+    <ClInclude Include="..\include\peel\XmlParser.h" />
+    <ClInclude Include="..\include\peel\XmlTag.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

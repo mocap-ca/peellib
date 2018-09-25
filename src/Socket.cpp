@@ -142,22 +142,26 @@ STRING Socket::GetPeer()
 }
 
 
-u_long Socket::LookupAddress (const PL_CHAR* pcHost)
+bool Socket::LookupAddress (const PL_CHAR* pcHost, void *ret)
 {
+	// ret must be sizeof(struct in_addr) sized.
+
 #if defined(_WIN32) && defined(_UNICODE)
 	ADDRINFOT *result = NULL;
 	GetAddrInfo(pcHost, NULL, NULL, &result);
-	return (u_long)result->ai_addr;
+    memcpy(ret, result->ai_addr, sizeof(unsigned long));
+	return true;
 #else
 	unsigned char nRemoteAddr[sizeof(struct in_addr)];
-	int ret = inet_pton(AF_INET, pcHost, &nRemoteAddr);
-	if (ret <= 0) 
+	int r = inet_pton(AF_INET, pcHost, &nRemoteAddr);
+	if (r <= 0) 
 	{/*
 		hostent* pHE = gethostbyname(pcHost);  // pcHost isn't a dotted IP, so resolve it through DNS
 		if (pHE == 0)  return INADDR_NONE;
 		nRemoteAddr = *((u_long*)pHE->h_addr_list[0]);*/
 	}
-	return (u_long)nRemoteAddr;
+	memcpy(ret, nRemoteAddr, sizeof(struct in_addr));
+	return true;
 #endif
 }
 
@@ -257,9 +261,9 @@ void Socket::SendTo(const void *data, size_t len)
 {
     if(m_socketType != UDP) throw SocketException(_T("Invalid Socket Type while trying to send datagram"))
 ;
-	size_t ret = sendto(m_socket, (const char*)data, len, 0,
+	size_t ret = sendto(m_socket, (const char*)data, (int)len, 0,
 				 (struct sockaddr *)&m_sendDest.m_address,
-				 sizeof(m_sendDest.m_address));
+				 (int)sizeof(m_sendDest.m_address));
 
 	if(ret == (size_t)-1) throw SocketException(_T("Error sending broadcast message"), GetError());
 	else if(ret != len)   throw SocketException(_T("Not all bytes were sent during broadcast message"), GetError());
@@ -300,7 +304,7 @@ void Socket::Connect(const PL_CHAR *host, unsigned short port)
 
 	while(1)
 	{
-		if ( connect( m_socket, current->ai_addr, current->ai_addrlen ) != SOCKET_ERROR) 
+		if ( connect( m_socket, current->ai_addr, (int)current->ai_addrlen ) != SOCKET_ERROR) 
 		{
 			okay = true;
 			break;
@@ -461,7 +465,7 @@ void Socket::Bind(const char *path)
 }
 #endif
 
-size_t Socket::GetDatagram(char *buf, size_t len)
+size_t Socket::GetDatagram(char *buf, int len)
 {
 	socklen_t l = sizeof(struct sockaddr_in);
 	size_t ret = recvfrom(m_socket, buf, len, 0, m_from, &l );
@@ -545,7 +549,7 @@ bool Socket::Accept(SOCKET &new_sock)
 
 void Socket::Send(std::vector<char> &data)
 {
-    Send((void*)data.data(), data.size());
+    Send((void*)data.data(), (int)data.size());
 }
 
 void Socket::Send(PL_CHAR c)
@@ -613,7 +617,7 @@ bool Socket::PutFile(const PL_CHAR *filename, long offset)
 	while(b)
 	{
 		if(bytesRead==0) break;
-		Send(buffer, bytesRead);  // will throw
+		Send(buffer, (int)bytesRead);  // will throw
 		pf.read(buffer, 4096, &bytesRead);
 	}
 
@@ -672,7 +676,7 @@ void Socket::ReceiveRaw(STRING filename, int len)
 	size_t  bytesRecv = 0;
 	time_t  startTime = time(NULL);
 	size_t  written;
-	int     total=0;
+	size_t  total=0;
 	pl_data buf[255];
 
 	peel::File pf(filename.c_str(), filename.length()); 
@@ -788,7 +792,7 @@ bool Socket::ReceiveToToken(void *data, int len, const char token, int *bytesRea
 			if(ptr - (char*)data == len) throw SocketException(_T("Overflow while receiving token"));
 			if ( c == token )
 			{
-				*bytesRead = ptr - (char*)data;
+				*bytesRead = (int)(ptr - (char*)data);
 				return true;
 			}
 		}
