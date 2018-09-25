@@ -37,11 +37,18 @@ c3dFile::c3dFile()
 	m_timecode.timecode[1]       = 0;
 	m_timecode.timecode[2]       = 0;
 	m_timecode.timecode[3]       = 0;
+	m_timecode_offset            = 0.0f;
 }
 
 c3dFile::~c3dFile()
 {
 
+}
+
+void c3dFile::debugMessage(const char *fmt, ...)
+{
+	va_list args;
+	printf(fmt, args);
 }
 
 
@@ -175,7 +182,7 @@ bool c3dFile::open(const char* fileName)
 
 
 //fileParam.fullName().asChar()
-bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
+bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug, bool fullFrames)
 {
 	stringstream    ss;
 	signed char	num_char;
@@ -192,6 +199,8 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 	m_debug         = debug;
 	m_analogFrames  = 0;
 	m_pointFrames   = 0;
+	m_subjectNames.clear();
+	m_subjectPrefixes.clear();
 
 	if(m_file == NULL) return false;
 
@@ -222,17 +231,41 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 	m_scaleFactor = convertToFloat(m_header.scale_factor, m_procType-83);
 	m_frameRate   = convertToFloat(m_header.frame_rate, m_procType-83);
 
+
+
 	if(debug)
 	{
-		cout << "c3d parser version : " << PEEL_C3D_VERSION << endl;
-		cout << "Header:" << endl;
-		cout << "Frames Per Field: "   << m_header.frames_per_field << endl;
-		cout << "Number Of Channels: " << m_header.num_channels << endl;
-		cout << "First Field:        " << m_header.first_field << endl;
-		cout << "Last Field:         " << m_header.last_field << endl;
-		cout << "Max Interpolation:  " << m_header.max_interpolation << endl;
-		cout << "Frame Rate:         " << m_frameRate << endl;
-		cout << "Scale Factor:       " << m_scaleFactor << endl;
+		debugMessage("c3d parser version: %s", PEEL_C3D_VERSION);
+		debugMessage("Header:");
+		debugMessage("Frames Per Field:   %d", m_header.frames_per_field);
+		debugMessage("Number Of Channels: %d", m_header.num_channels);
+		debugMessage("First Field:        %d", m_header.first_field);
+		debugMessage("Last Field:         %d", m_header.last_field);
+		debugMessage("Max Interpolation:  %d", m_header.max_interpolation);
+		debugMessage("Frame Rate:         %f", m_frameRate);
+		debugMessage("Scale Factor:       %f", m_scaleFactor);
+	}
+
+	if (fullFrames)
+	{
+		float f = m_frameRate;
+		if (abs(m_frameRate - (24 * 1000.0 / 1001.0)) < 0.0001)
+			m_frameRate = 30.0f;
+
+		if (abs(m_frameRate - (25 * 1000.0 / 1001.0)) < 0.0001)
+			m_frameRate = 30.0f;
+
+		if (abs(m_frameRate - (30.0 * 1000.0 / 1001.0)) < 0.0001)
+			m_frameRate = 30.0f;
+
+		if (abs(m_frameRate - (60.0 * 1000.0 / 1001.0)) < 0.0001)
+			m_frameRate = 30.0f;
+
+		if (abs(m_frameRate - (120.0 * 1000.0 / 1001.0)) < 0.0001)
+			m_frameRate = 120.0f;
+
+		if (f != m_frameRate)
+			debugMessage("Frame rate adjusted to: %f", m_frameRate);
 	}
 
 	setRate(m_frameRate);
@@ -283,7 +316,10 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 		{
 			// This is a group
 			m_groups[-param_group_id] = param_name;
-			if(m_debug && param_name != NULL) cout << "=== GROUP:" << param_name << " ===" << endl;
+			if (m_debug && param_name != NULL)
+			{
+				debugMessage("=== GROUP: %s ===", param_name);
+			}
 		}
 		else
 		{
@@ -307,7 +343,7 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 				group_desc = (char*)malloc(num_char+1);
 				fread(group_desc, sizeof(char), num_char, m_file);
 				group_desc[num_char] = '\0';
-				printf("Desc: %s\n", group_desc);
+				debugMessage("Desc: %s", group_desc);
 				free(group_desc);
 			}
 		}
@@ -315,6 +351,32 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 		// Move forward to next element (from saved position)
 		fseek(m_file, current_pos + next_offset, SEEK_SET);
 
+	}
+
+	// Calculate the timecode offset
+	if (useTimecode && m_timecode.used)
+	{
+		m_timecode_offset = (float)m_timecode.timecode[0] * 60.f * 60.f;
+		m_timecode_offset += (float)m_timecode.timecode[1] * 60.f;
+		m_timecode_offset += (float)m_timecode.timecode[2];
+
+		// Convert seconds to frames
+		m_timecode_offset *= m_timecode.standard;
+
+		// Drop frames
+		if (m_timecode.dropFrame) m_timecode_offset = m_timecode_offset * 1000 / 1001;
+
+		// Add timecode frames
+		m_timecode_offset += m_timecode.timecode[3];
+
+		// Convert back to seconds.
+		m_timecode_offset = m_timecode_offset * m_frameRate / (float)m_timecode.standard;
+
+		if (m_debug)
+		{
+			debugMessage("Timecode offset: %f seconds", m_timecode_offset);
+			debugMessage("C3D file offset: %d", m_timecode.offset);
+		}
 	}
 
 	if(groupName != NULL) createGroup(groupName);
@@ -333,28 +395,7 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 	for(size_t i=m_analogLabels.size(); i < m_header.num_channels;  i++)
 		createLocator(i, std::string(""), false);
 
-	float tc_offset = 0.0;
-	if(useTimecode && m_timecode.used)
-	{
-		tc_offset = (float)m_timecode.timecode[0] * 60.f * 60.f;
-		tc_offset+= (float)m_timecode.timecode[1] * 60.f;
-		tc_offset+= (float)m_timecode.timecode[2];
 
-		// Convert seconds to frames
-		tc_offset *= m_timecode.standard;
-
-		// Drop frames
-		if(m_timecode.dropFrame) tc_offset = tc_offset * 1000 / 1001;
-			
-		// Add timecode frames
-		tc_offset += m_timecode.timecode[3];
-
-		// Convert back to seconds.
-		tc_offset /= m_timecode.standard;
-
-		if(m_debug) cout << "Timecode offset:" << tc_offset << " seconds" << endl;
-
-	}
 
 	/***********************
 	     BODY SECTION	
@@ -362,6 +403,7 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 
 
 	float valx, valy, valz;
+	double current_frame;
 	signed short *sh;
 
 	// Go to the body start
@@ -390,11 +432,13 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 
 	setRange(1 , m_header.last_field - m_header.first_field);
 
-	if(m_debug) cout << "Scale: " << m_scaleValue << endl;
+	if(m_debug) debugMessage("Scale: %f", m_scaleValue);
 
 	// For each frame
 	for(int frame_n=0; frame_n < m_header.last_field - m_header.first_field+1 ; frame_n++)
 	{
+		current_frame = (double)frame_n + (double)m_header.first_field + m_timecode_offset;
+
 		if(size_marker > 0)
 		{
 			fread(dat_marker, 1, size_marker, m_file);
@@ -427,7 +471,9 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 				}
 
 				// frame_n * tScale
-				addKey(mark_n, (((float)frame_n + (float)m_header.first_field ) / m_frameRate) + tc_offset, valx, valy, valz);
+
+
+				addKey(mark_n, current_frame / m_frameRate, valx, valy, valz);
 			}
 		}
 
@@ -448,14 +494,14 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug)
 				{
 					if(m_scaleFactor<0)
 					{
-						addAnalogKey(anlg, (((float)frame_n + (float)m_header.first_field + subFrame)  / m_frameRate) + tc_offset, convertToFloat(ptr, m_procType-83));
+						addAnalogKey(anlg, current_frame / m_frameRate, convertToFloat(ptr, m_procType-83));
 						ptr+=4;
 					}
 					else
 					{
 						sh = (short*)ptr;
 						conform((unsigned short&)sh, m_procType-83);
-						addAnalogKey(anlg, (theTime  / m_frameRate) + tc_offset, (float)(*sh));
+						addAnalogKey(anlg, (theTime  / m_frameRate) + m_timecode_offset, (float)(*sh));
 						ptr+=2;
 					}
 				}
@@ -506,12 +552,12 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 
 	if(group_name == NULL) return false;
 
-	enum groups { POINT, ANALOG, TIMECODE, UNKNOWN } eGroup = UNKNOWN;
+	enum groups { POINT, ANALOG, TIMECODE, SUBJECTS, UNKNOWN } eGroup = UNKNOWN;
 
-	if(strcmp(group_name,"POINT")==0)    eGroup = POINT;
-	if(strcmp(group_name,"ANALOG")==0)   eGroup = ANALOG;
-	if(strcmp(group_name,"TIMECODE")==0) eGroup = TIMECODE;
-
+	if(strcmp(group_name, "POINT")==0)      eGroup = POINT;
+	if(strcmp(group_name, "ANALOG")==0)     eGroup = ANALOG;
+	if(strcmp(group_name, "TIMECODE")==0)   eGroup = TIMECODE;
+	if(strcmp(group_name, "SUBJECTS") == 0) eGroup = SUBJECTS;
 
 	// this is a parameter
 	//printf("Parameter %i: %s:%s ", param_group_id, group_namee, param_name);
@@ -537,7 +583,7 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 					m_timecode.dropFrame = (val == 1);
 			}
 
-			if(m_debug) cout << "\t" << param_name << " byte: " << (int)val << endl;
+			if(m_debug) debugMessage("    %s byte: %d", param_name, (int)val);
 		}
 		else
 		if(param_dims == 1)
@@ -568,26 +614,26 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 				if(strcmp(param_name, "UNITS")==0)
 				{
 					m_units = str;
-					if(m_debug) cout << "units are: " << str << endl;
+					if(m_debug) debugMessage("Units are: %s", str);
 					if(str[0] == 0x00)
 					{
-						if(m_debug) cout << "Blank units!" << endl;
+						if(m_debug) debugMessage("Blank units!");
 					}
 					else if ((str[1] == 0x00 || str[1] == 0x20) &&  str[0] == 'm'  )
 					{
-						if(m_debug) cout << "Setting scale to 1000 for meter units" << endl;
+						if(m_debug) debugMessage("Setting scale to 1000 for meter units");
 						m_scaleValue=1000.0f;
 					}
 					else if ((str[2] == 0x00 || str[2] == 0x20) && str[0] == 'c' && str[1] =='m')
 					{
-						if(m_debug) cout << "Setting scale to 10 for cemtimeter units" << endl;
+						if (m_debug) debugMessage("Setting scale to 10 for cemtimeter units");
 						m_scaleValue=10.0f;
 					}
 				}
 			}
 
 
-			if(m_debug) cout << "\t" << param_name << " string: " << str << endl;
+			if(m_debug) debugMessage("    %s  string: %s", param_name, str);
 
 			free(str);
 
@@ -602,9 +648,17 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 			if(memcmp(param_name,"LABELS", 6)==0)
 			{
 				if(eGroup == POINT)
-					readLabels(true);
+					readLabels(m_pointLabels);
 				else if(eGroup == ANALOG)
-					readLabels(false);
+					readLabels(m_analogLabels);
+			}
+			if (eGroup == SUBJECTS && memcmp(param_name, "LABEL_PREFIXES", 14) == 0)
+			{
+				readLabels(m_subjectPrefixes);
+			}
+			if (eGroup == SUBJECTS && memcmp(param_name, "NAMES", 5) == 0)
+			{
+				readLabels(m_subjectNames);
 			}
 			else
 			{
@@ -621,7 +675,7 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 					fread(val, sizeof(char), unit_size * num_units, m_file);
 
 					char s[256];
-					cout << "\t" << param_name << " strings: ";
+					debugMessage("    %s  strings:", param_name);
 					for(unsigned int i=0; i < num_units; i++)
 					{
 #ifdef _WIN32
@@ -630,9 +684,8 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 						memcpy(s, val+i * unit_size, unit_size);
 #endif
 						s[unit_size]='\0';
-						cout << "\t" << s << endl;
+						debugMessage("    %s", s);
 					}
-					cout << "\n";
 					free(val);
 				}
 				else
@@ -644,7 +697,7 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 		}
 		else
 		{
-			if(m_debug) cout << "\t" << param_name << " Unsupported dimension: " << (unsigned int)param_dims;
+			if(m_debug) debugMessage( "    %s  Unsupported dimension: %d", param_name, (unsigned int)param_dims);
 		}
 	}
 	else
@@ -656,7 +709,7 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 			// Single Short Int
 			short val;
 			fread(&val, sizeof(short), 1, m_file);
-			if(m_debug) cout << "\t" << param_name << " int: " << val << endl;
+			if(m_debug) debugMessage("    %s  int: %d", param_name, val);
 			conform((unsigned short &)val, m_procType - 83);
 
 			if(strcmp(param_name,"USED")==0)
@@ -678,10 +731,8 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 
 			if(m_debug)
 			{
-				cout << "\t";
-				for(size_t xx = 0; xx < len; xx++)
-					cout << vals[xx] << " ";
-				cout << endl;
+				for (size_t xx = 0; xx < len; xx++)
+					debugMessage("    %d", vals[xx]);
 			}
 
 		}
@@ -737,14 +788,13 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 			if(m_debug)
 			{
 				//char s[256];
-				cout << "\t" << param_name << " int[" << (int)num_units << "][" << (int)unit_size << "]:";
+				debugMessage("    %s   int[%d][%d]:", param_name, (int)num_units,  (int)unit_size);
 				for(int i=0; i < num_units; i++)
 				{
 					for(int j=0; j < unit_size; j++)
 					{
-						cout << (short)*(((short*)(val)) + (i + j)) << " ";
+						debugMessage("%d ", (short)*(((short*)(val)) + (i + j)));
 					}
-					cout << endl;
 				}
 			}
 
@@ -752,7 +802,7 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 		}
 		else
 		{
-			if(m_debug) cout << "\t" << param_name << " unsupported element 2, dimension " << (unsigned int)param_dims << endl;
+			if (m_debug) debugMessage("    %s  unsupported element 2, dimension %d", param_name, (unsigned int)param_dims);
 		}
 	}
 	else
@@ -765,7 +815,7 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 			char val[4];
 			fread(&val, sizeof(char), 4, m_file);
 			float fval = convertToFloat(val, m_procType-83);
-			if(m_debug) cout << "\t" << param_name << " float: " << fval << endl;
+			if (m_debug) debugMessage("   %s   float: %f", param_name, fval);
 		}
 		else
 		if(param_dims == 1)
@@ -780,10 +830,10 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 				fread(val, 4, len, m_file);
 				if(m_debug)
 				{
-					cout << "\t" << param_name << " floats: ";
+					debugMessage("    %s  floats:", param_name);
 					for(int i=0; i<len; i++)
-						 cout << *(((float*)val)+i) << " ";
-					cout << endl;
+						debugMessage("%f ", *(((float*)val)+i));
+					debugMessage("");
 				}
 				
 				free(val);
@@ -793,17 +843,17 @@ bool c3dFile::readParam(size_t param_group_id, char* param_name)
 		else
 		{
 			// unsupported
-			if(m_debug) cout << "\t" << param_name << " unsupported element 4, dimension " << (unsigned int)param_dims << endl;
+			if(m_debug) debugMessage("    %s unsupported element 4, dimension %d", param_name, (unsigned int)param_dims);
 		}
 	}
 	else
-		if(m_debug) cout << "\t" << param_name << " unsupported element " << (int)param_ele << ", dimension " << (unsigned int)param_dims << endl;
+		if(m_debug) debugMessage("    %s unsupported element %d, dimension %d", param_name, (int)param_ele, (unsigned int)param_dims);
 
 	return true;
 }
 
 
-bool c3dFile::readLabels(bool pointData)
+bool c3dFile::readLabels(std::vector<std::string> &out)
 {
 	unsigned char unit_size;			
 	unsigned char num_units;
@@ -829,16 +879,21 @@ bool c3dFile::readLabels(bool pointData)
 		unsigned int p;
 		for(p = unit_size; p > 0 && s[p-1]==0x20; s[--p]='\0') {};
 
-		// Validate
-		for(p=0; s[p]!='\0';p++)
+		if (m_validateLabels)
 		{
-			if( !(	(s[p] >= 'a' && s[p] <= 'z') ||
+			// Validate
+			for (p = 0; s[p] != '\0'; p++)
+			{
+				if (!((s[p] >= 'a' && s[p] <= 'z') ||
 					(s[p] >= 'A' && s[p] <= 'Z') ||
 					(s[p] >= '0' && s[p] <= '9') ||
-					(s[p] == '_')   ) )
-											s[p] = '_';
+					(s[p] == '_')))
+					s[p] = '_';
+			}
 		}
 
+		out.push_back(s);
+		/*
 		if(pointData)
 		{
 			// Point data
@@ -850,7 +905,7 @@ bool c3dFile::readLabels(bool pointData)
 			// Analog Data
 			if(m_debug)	cout << "\tAnalog: " << s << endl;
 			m_analogLabels.push_back(s);
-		}
+		}*/
 	}
 	free(val);
 

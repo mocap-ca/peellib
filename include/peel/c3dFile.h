@@ -96,7 +96,7 @@ public:
 	bool open(const char* fileName);
 
 	//! Parse this file, call after open has returned true
-	bool parse(const char* groupName, bool useTimecode, bool debug); 
+	bool parse(const char* groupName, bool useTimecode, bool debug, bool fullFrames); 
 
 	//! Read parameters
 	/*! Sets members based on parameters in file and reads labels */
@@ -104,8 +104,9 @@ public:
 
 	//! Read the label data.
 	/*! @param pointData true read points, false: read analog labels */
-	bool readLabels(bool pointData);  
+	bool readLabels(std::vector<string> &);  
 
+	bool        m_validateLabels;  //!< if true, remove invalid chars from label names
 
 	FILE*       m_file;         //!< The file being read
 
@@ -113,11 +114,12 @@ public:
 	short       m_pointFrames;  //!< Number of point frames
 
 	c3dTimeCode m_timecode;     //!< Timecode start and rate, read from parameters
+	double      m_timecode_offset; //!<< Calculated timecode offset in seconds
 
 	c3dHeader   m_header;       //!< The raw header data
-	float       m_scaleFactor;  //!< C3D Data Scale factor, converted from header
-	float       m_scaleValue;   //!< Value scale factor, default is 1.0, for unit conversion
-	float	    m_frameRate;    //!< Sample rate, converted from header
+	double      m_scaleFactor;  //!< C3D Data Scale factor, converted from header
+	double      m_scaleValue;   //!< Value scale factor, default is 1.0, for unit conversion
+	double      m_frameRate;    //!< Sample rate, converted from header
 	char        m_procType;     //!< Data format, decoded by convertToFloat
 	bool        m_debug;        //!< Write debug data to cout during parsing 
 	string      m_units;        //!< Units as specified by the UNITS parameter
@@ -125,6 +127,9 @@ public:
 
 	std::vector<std::string>  m_analogLabels;  //!< Names of analog labels
 	std::vector<std::string>  m_pointLabels;   //!< Names of marker/point cloud labels
+
+	std::vector<std::string>  m_subjectNames;
+	std::vector<std::string>  m_subjectPrefixes;
 
 	char* m_groups[255];  //!< Name of groups in parameter section 
 
@@ -143,16 +148,16 @@ public:
 	//! Add a key to a position Locator
 	/*! @param marker the Locator to add key to, in order that they were created
  	    @param sample time location to add key, may include timecode offset.  */	
-	virtual bool addKey(size_t marker, float sample, float x, float y, float z) = 0;
+	virtual bool addKey(size_t marker, double sample, float x, float y, float z) = 0;
 
 	//! Add a key to a analog Locator
 	/*! @param marker the Locator to add the key to, in order that they were created
             @param sample time value to add key to, may include timecode
 	    @param value analog value for key */
-	virtual bool addAnalogKey(size_t marker, float sample, float value) = 0;
+	virtual bool addAnalogKey(size_t marker, double sample, float value) = 0;
 
 	//! Set the frame rate
-	virtual void setRate(float rate) = 0;
+	virtual void setRate(double rate) = 0;
 
 	//! Set the frame range for the importing file.  Called before parsing starts
 	virtual void setRange(int start, int end) = 0;
@@ -162,6 +167,8 @@ public:
 
 	//! Call when parsing is complete
 	virtual void allDone() = 0;
+
+	virtual void debugMessage(const char *fmt, ...);
 
 protected:
 	//! Convert a float to a c3d format bytes
