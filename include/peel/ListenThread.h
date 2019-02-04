@@ -42,7 +42,7 @@ public:
 
 
 	//! Subclass should implement this to handle the incoming data connection
-	virtual bool receiveData(Socket *s) = 0;
+	virtual void receiveData(Socket *s) = 0;
 
 	//! Port to listen on
 	int    m_port;

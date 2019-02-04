@@ -2,7 +2,7 @@ SRC=BinderParser.cpp BroadcastListenThread.cpp File.cpp HttpSocket.cpp ListenThr
 
 SRCS:=$(SRC:%=src/%)
 OBJS:=${SRCS:.cpp=.o}
-CPPFLAGS = -Iinclude -O3
+CPPFLAGS = -Iinclude -O0 -g
 
 
 .cpp.o:

@@ -27,6 +27,7 @@ void ListenThread::operator ()()
 		// if a connection was made
 		try
 		{
+			this->SetBlocking(true);
 			if(!this->Accept(sok)) continue;
 		}
 		catch(SocketException e)
