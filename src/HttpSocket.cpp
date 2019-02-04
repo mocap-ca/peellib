@@ -686,9 +686,15 @@ void HttpSocket::ReplyGet(const std::string body, bool htmlBody, int code)
 	ostringstream ss;
 	char buffer[255];
 	time_t t = time(NULL);
+#ifdef _WIN32
 	struct tm my_tm;
 	gmtime_s(&my_tm, &t);
 	strftime(buffer, 255, "%a, %d %b %Y %H:%M:%S GMT", &my_tm);
+#else
+	struct tm *my_tm;
+	my_tm = gmtime(&t);
+	strftime(buffer, 255, "%a, %d %b %Y %H:%M:%S GMT", my_tm);
+#endif
 
 	if(code == 404) ss << "HTTP/1.1 404 Not Found\r\n";
 	else            ss << "HTTP/1.1 200 OK\r\n";

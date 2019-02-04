@@ -15,6 +15,7 @@ Version:
 
 
 #include "peel/c3dFile.h"
+#include "math.h"
 
 using namespace peel;
 
@@ -249,19 +250,19 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug, bool f
 	if (fullFrames)
 	{
 		float f = m_frameRate;
-		if (abs(m_frameRate - (24 * 1000.0 / 1001.0)) < 0.0001)
+		if (fabs(m_frameRate - (24 * 1000.0 / 1001.0)) < 0.0001)
 			m_frameRate = 30.0f;
 
-		if (abs(m_frameRate - (25 * 1000.0 / 1001.0)) < 0.0001)
+		if (fabs(m_frameRate - (25 * 1000.0 / 1001.0)) < 0.0001)
 			m_frameRate = 30.0f;
 
 		if (abs(m_frameRate - (30.0 * 1000.0 / 1001.0)) < 0.0001)
 			m_frameRate = 30.0f;
 
-		if (abs(m_frameRate - (60.0 * 1000.0 / 1001.0)) < 0.0001)
+		if (fabs(m_frameRate - (60.0 * 1000.0 / 1001.0)) < 0.0001)
 			m_frameRate = 30.0f;
 
-		if (abs(m_frameRate - (120.0 * 1000.0 / 1001.0)) < 0.0001)
+		if (fabs(m_frameRate - (120.0 * 1000.0 / 1001.0)) < 0.0001)
 			m_frameRate = 120.0f;
 
 		if (f != m_frameRate)

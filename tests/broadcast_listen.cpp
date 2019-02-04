@@ -8,7 +8,7 @@ public:
 	BListen(int port) : peel::BroadcastListenThread(port)
 	{}
 
-	void processData(char *data, size_t len)
+	void processData(char *data, size_t len, peel::SocketAddress *from)
 	{
 		printf("%s", data);
 		for(size_t i =0; i< len; i++)
