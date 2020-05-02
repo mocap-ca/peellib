@@ -1,0 +1,28 @@
+# cmake -H.. -B. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release
+set(CMAKE_DEBUG_POSTFIX d)
+
+add_library(peellib STATIC  
+   src/BinderParser.cpp
+   src/ListenThread.cpp
+   src/SocketAddress.cpp
+   src/XmlParser.cpp
+   src/BroadcastListenThread.cpp
+   src/Log.cpp
+   src/SocketException.cpp
+   src/xmltag.cpp
+   src/c3dFile.cpp
+   src/profile.cpp
+   src/XmlTagGet.cpp
+   src/File.cpp
+   src/Signal.cpp
+   src/Util.cpp
+   src/HttpSocket.cpp
+   src/Socket.cpp
+   src/WinUtil.cpp)
+
+#   src/UnixUtil.cpp
+
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+
+install(TARGETS  peellib DESTINATION ${CMAKE_SOURCE_DIR}/lib)
