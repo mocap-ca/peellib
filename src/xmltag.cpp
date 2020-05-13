@@ -77,7 +77,7 @@ XmlTagEntity* XmlTagEntity::getNextTag()
 	while(!m_complete && !m_error)
 	{
 		XmlEntity *x = getNext();
-		if(x==NULL) return false;
+		if(x==NULL) return nullptr;
 		if(x->isTag()) return (XmlTagEntity*)x;
 	}
 
@@ -464,7 +464,7 @@ bool XmlTagEntity::parseTag(STRING src)
 		}
 	}
 
-	if(i=src.length())
+	if(i==src.length())
 	{
 		if(stat==st_node)
 		{
