@@ -251,16 +251,16 @@ bool c3dFile::parse(const char* groupName,  bool useTimecode, bool debug, bool f
 	{
 		float f = m_frameRate;
 		if (fabs(m_frameRate - (24 * 1000.0 / 1001.0)) < 0.0001)
-			m_frameRate = 30.0f;
+			m_frameRate = 24.0f;
 
 		if (fabs(m_frameRate - (25 * 1000.0 / 1001.0)) < 0.0001)
-			m_frameRate = 30.0f;
+			m_frameRate = 25.0f;
 
 		if (abs(m_frameRate - (30.0 * 1000.0 / 1001.0)) < 0.0001)
 			m_frameRate = 30.0f;
 
 		if (fabs(m_frameRate - (60.0 * 1000.0 / 1001.0)) < 0.0001)
-			m_frameRate = 30.0f;
+			m_frameRate = 60.0f;
 
 		if (fabs(m_frameRate - (120.0 * 1000.0 / 1001.0)) < 0.0001)
 			m_frameRate = 120.0f;

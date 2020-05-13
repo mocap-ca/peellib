@@ -1,21 +1,32 @@
-SRC=BinderParser.cpp BroadcastListenThread.cpp File.cpp HttpSocket.cpp ListenThread.cpp Log.cpp Signal.cpp Socket.cpp SocketAddress.cpp SocketException.cpp UnixUtil.cpp Util.cpp c3dFile.cpp
+SRC= BroadcastListenThread.cpp File.cpp HttpSocket.cpp ListenThread.cpp Log.cpp Signal.cpp Socket.cpp SocketAddress.cpp SocketException.cpp UnixUtil.cpp Util.cpp c3dFile.cpp
 
 SRCS:=$(SRC:%=src/%)
-OBJS:=${SRCS:.cpp=.o}
-CPPFLAGS = -Iinclude -O0 -g
+OBJS:=${SRC:.cpp=.o}
+DOBJS = $(addprefix debug/, $(OBJS))
+ROBJS = $(addprefix release/, $(OBJS))
+
+all: debug release
+debug: libpeeld.a
+
+release: libpeel.a
+
+libpeeld.a: $(DOBJS)
+	ar -rcs $@ $<
+
+libpeel.a: $(ROBJS)
+	ar -rcs $@ $<
 
 
-.cpp.o:
-	$(CC) $(CPPFLAGS) -o $@ -c $<
+debug/%.o: src/%.cpp
+	@mkdir -p debug
+	g++ -Iinclude -O0 -g $(CPPFLAGS) -o $@ -c $<
 
-all: build $(OBJS)
-	echo $(SRC)
-	echo $(SRCS)
-	echo $(OBJS)
-	ar -rcs peellib.a $(OBJS)
-
-build:
-	mkdir build
+release/%.o : src/%.cpp
+	@mkdir -p release
+	g++ -Iinclude -O3 $(CPPFLAGS) -o $@ -c $<
 
 clean:
-	rm src/*.o
+	rm $(DOBJS)
+	rm $(ROBJS)
+	rm libpeel.a
+	rm libpeeld.a
