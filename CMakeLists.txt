@@ -3,8 +3,6 @@
 cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
-set(CMAKE_DEBUG_POSTFIX d)
-
 add_library(peellib STATIC  
    src/BinderParser.cpp
    src/ListenThread.cpp
