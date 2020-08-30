@@ -117,9 +117,9 @@ public:
 	double      m_timecode_offset; //!<< Calculated timecode offset in seconds
 
 	c3dHeader   m_header;       //!< The raw header data
-	double      m_scaleFactor;  //!< C3D Data Scale factor, converted from header
-	double      m_scaleValue;   //!< Value scale factor, default is 1.0, for unit conversion
-	double      m_frameRate;    //!< Sample rate, converted from header
+	float      m_scaleFactor;  //!< C3D Data Scale factor, converted from header
+	float      m_scaleValue;   //!< Value scale factor, default is 1.0, for unit conversion
+	float      m_frameRate;    //!< Sample rate, converted from header
 	char        m_procType;     //!< Data format, decoded by convertToFloat
 	bool        m_debug;        //!< Write debug data to cout during parsing 
 	string      m_units;        //!< Units as specified by the UNITS parameter
